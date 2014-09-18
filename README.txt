@@ -1,5 +1,5 @@
 Hyper IMU & HIMU-Server Help
-version 1.0
+version 1.2
 
 ------------------------------------------------------------------------------------------------------------
 Network & Connection configurations
@@ -66,8 +66,8 @@ where the values can be subdivided as follows:
 	      Sensor1                               Sensor2                               Sensor3                end of line
 	      
 	      
-At the end of the CSV line it is inserted the special symbol “#”.
-In the case of GPS data, besides the values of latitude and longitude, a zero value is added in order to match the same length of values of other sensors.
+At the end of the CSV line it is inserted the special symbol '#'.
+GPS data (Latitude, Longitude, Altitude) will be added at the end of the stream as three doubles.
 
 
 

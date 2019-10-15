@@ -31,14 +31,12 @@ from HIMUServer import HIMUServer
 class SimplePrintListener:
     def __init__(self, serverInstance):
         self.__server = serverInstance
-        pass
     		
     def notify (self, sensorData):
 		#Customize the notify method in order to elaborate data
 		# sensorData contains String values (see HIMUServer.__extractSensorData())
         HIMUServer.printSensorsData(sensorData)
 		#for a string-to-float conversion, try HIMUServer.strings2Floats()
-        pass
 
 #HIMUServer instance:
 myHIMUServer = HIMUServer()
@@ -55,7 +53,7 @@ myHIMUServer.timeout = 2
 myHIMUServer.start("TCP", 2055)
 
 #Launch acquisition via UDP on port 2055:
-#myHIMUServer.start("UDP", 2055)
+myHIMUServer.start("UDP", 2055)
 
 #Launch acquisition from local file:
-#myHIMUServer.start("FILE", "HIMU-filetest.csv")
+myHIMUServer.start("FILE", "HIMU-filetest.csv")

@@ -1,56 +1,32 @@
-Hyper IMU & HIMU-Server Help
-version 2.0
+HIMU-Server
+===========
 
-# Network and Connection configurations #
+HIMU Server (HyperIMU Server) is a python library covering all server-side stream protocols supported by [HyperIMU](https://ianovir.com/works/mobile/hyperimu/). It performs basic operations such as input stream reading and csv sequence chunking.
 
-In this paragraph it is described one of the several solutions to set up a Network between your Android device and the Server (PC).
+Read the [HyperIMU Documentation](https://ianovir.com/works/mobile/hyperimu/hyperimu-help/) for more details.
 
-## Set up a portable Hotspot from your Android Device ##
+# Overview #
 
-1. Go in **Settings** from your Android Device
-2. Under the section **Wireless & Networks**, tap on **More**, then on **Thetering & portable hotspot**.
-3. In the **Thetering & portable hotspot** screen, tap on **Set up Wi-Fi hotspot**, then a box will appear.
-4. Choose the **Network SSID** (Service Set Identifier) as you prefer; it is pratically the name of the the new Network
-5. Specify a Security protocol as you want.
-6. Choose a network **Password** as you prefer.
+## Network configurations ##
 
-## Connect your Computer to the portable Network ##
-Go in the Settings of your Computer and connect to the Network created above, specifying the Network SSID, 
-the Security protocol and the Password defined in the previous steps.
+In order to connect the HIMUServer application and the HyperIMU app, you need the following:
 
-## Retrieving the  IP address of your Computer ##
-The IP address of your Computer is necessary in order to allow the Android device to connect to your PC.
-It is composed up to 12 ciphers (example: *192.168.xxx.xxx*).
-You can retrieve it after your Computer is connected to the Network.
+* Be sure the Android device (HyperIMU client) and you server (HIMUServer) are connected to the **same network**
+* Configure the HyperIMU app with the server **IP address** and **server port**
+* Be sure the **firewall** in the server machine doesn't limit the server application 
 
-### Windows OS ###
-In the command prompt, enter the command **ipconfig /all** and check for the IPv4 Address.
-### Linux OS ###
-In the terminal enter the command **ip addr show** and check for the IPv4 Address.
-### MAC OS ###
-After your Computer connected to the Network, in the terminal enter the command **ifconfig** and check for the IPv4 Address.
+## Protocols and Data Format ##
 
-## HyperIMU configuration ##
-1. Go to the settings screen in HyperIMU
-2. From the **Stream Protocol** select an Internet protocol (UDP or TCP)
-3. In the field **IP address** put the IP address of your PC
-4. in the field **Port Number** put a value of your choice.
+HyperIMU streams the sensors' data by using the protocols UDP and TCP,
+or by storing them into a file for an offline processing.
+The order of the sensors is the same as specified in the HyperIMU's settings.
 
-Be sure that the corresponding port is not being used by the Operating System.
-
-# Protocols and Data Format #
-
-HyperIMU sends the data of the signals of the sensors by using the standard internet protocols UDP and TCP,
-or it stores all data inside a text File for an offline processing.
-The order of the sensors is the same as specified in the Settings of HyperIMU.
-The text file is saved in the device memory, and its name is composed by a  prefix **HIMU-** followed by the time stamp.
-The first lines of the text file represent the header, which cointains some informations 
-about acquisition (sampling time, sensors, timestamp...).
-
-Data sent through the Stream are formatted as CSV (Comma Separated Value).
+Data are formatted as CSV (Comma Separated Value).
 At a time, all sensors' values are gathered into a single string and all values are separated by commas. 
-HyperIMU samples three values per sensor, so for example, considering the case of three sensors,
-the string passed through the stream will be:
+HyperIMU samples always three values per sensor.
+
+E.g. considering a case with three sensors,
+the packet will be:
 
 	`0.123,0.586,0.2637,0.259,-0.5963,9.815,5.36,0.00,0.00 <CR><LF>`
 
@@ -61,61 +37,117 @@ where the values can be grouped as follows:
 |:---------------------------:|:----------------------:|:------------------:|:-----:|
 | 0.123 **,**  0.586 **,**  0.2637      | 0.259 **,**  -0.5963 **,** 9.815 | 5.36  **,** 0.00  **,** 0.00 |   **[CR][LF]**   |  
 	      
-At the end of the CSV line it is inserted the symbols [CR][LF]  or the char "#" (configurable option).
+At the end of the CSV line it is inserted the symbols [CR][LF] or the char "#" (configurable option).
 
-**Timestamp** and **MAC address** will be added at the very beginning of the packet, while **GPS** data (Latitude, Longitude, Altitude) and **GPS NMEA** sentences will be added at the end.
+**Timestamp** and **MAC address** will be added at the very beginning of the packet, while **GPS** data (Latitude, Longitude, Altitude) and **GPS NMEA** sentences will be added at the very end.
 
-# HIMUServer: usage #
+# Installation
+Get `HIMUServer` source from Github and install it.
+
+## Linux
+Execute the following commands:
+```sh
+git clone git://github.com/ianovir/HIMUServer.git
+cd HIMUServer/
+sudo python HIMUServer/setup.py install
+sudo rm -rf HIMUServer
+```   
+## Windows
+Download the repository or execute the following git command:
+```sh
+git clone git://github.com/ianovir/HIMUServer.git
+```
+Via Windows cmd (or Powershell) navigate to the downloaded folder `HIMUServer/` and execute the follwing command:
+```sh
+python HIMUServer/setup.py install
+```   
+Finally, delete the folder `HIMUServer/`
+
+# How to use HIMUServer#
+
+## Server configuration ##
 
 HIMU-Server offers code snippets for data acquisition via UDP, TCP and FILE protocols.
-It is possible to read the signals directly from the stream by using an instance of the class **HIMUServer.py**:
+It is possible to read the signals directly from the stream by using an instance of the class **HIMUServer**:
 
 ```python
-	myHIMUServer = HIMUServer()
+from HIMUServer import HIMUServer
+myHIMUServer = HIMUServer()
 ```
-Configurations such as input buffer size, timeout and terminator symbol can be specified directly in the server constructor.
-
-The last version of HIMU Server supports custom listeners, then you can define your custom one:
+Configurations such as input buffer size, timeout and terminator symbol can be specified directly in the server constructor:
 
 ```python
-	class SimplePrintListener:
-		def __init__(self, serverInstance):
-			self.__server = serverInstance
-			pass
-			
-		def notify (self, sensorData):
-			#simply printing all data strings
-			HIMUServer.printSensorsData(sensorData)
-			pass
+from HIMUServer import HIMUServer
+myHIMUServer = HIMUServer(bufferSize = 1024, timeout = 30, separatorIndex = 0)
 ```
+The parameter `separatorIndex` can assume the value 0 to use the symbol **[CR][LF]** for csv packet separator, value 1 to use the **#** symbol.
 
-Then, add an instance of the listener to the HIMUServer object:
+## Custom listeners ##
+
+HIMU Server supports listeners. A listener is an object having the public method `notify(sensorData)` which is called by the server when a packet is received.
+
+You can define your custom listener:
 
 ```python
-	myListener = SimplePrintListener(myHIMUServer)
-	myHIMUServer.addListener(myListener)
+class SimplePrintListener:
+    def __init__(self, serverInstance):
+        self.__server = serverInstance
+        ...
+        
+    def notify (self, sensorData):
+        #simply printing all data strings
+        HIMUServer.printSensorsData(sensorData)
 ```
 
-For launching TCP protocol, use
+Then add an instance of the listener to the server:
+
+```python
+myListener = SimplePrintListener(myHIMUServer)
+myHIMUServer.addListener(myListener)
+```
+
+## Accessing Sensors' data ##
+
+You can access the sensors' data by iterating the `sensorData` parameter in the `notify()` method of your custom listener:
+
+```python
+class MyCustomListener:
+    def __init__(self):
+        pass
+    ...    
+    def notify (self, sensorData): 
+        for sensors in sensorData:
+          sensor_1 = HIMUServer.strings2Floats(sensors[0])
+          sensor_2 = HIMUServer.strings2Floats(sensors[1])
+          ...
+          s1_x = sensor_1[0]
+          s1_y = sensor_1[1]
+          s1_z = sensor_1[2]
+```
+Please, note the method `HIMUServer.strings2Floats()` which can be used to convert a list of strings (from csv) to a list of floats very easily.
+
+## Launching the server ##
+
+Launch the server with TCP protocol:
 ```python
 	myHIMUServer.start("TCP", 2055)
 ```
 
-For launching UDP protocol, use
+UDP protocol:
 ```python
 	myHIMUServer.start("UDP", 2055)
 ```
 
-For File importing, use 
+File:
 ```python
 	myHIMUServer.start("FILE", "HIMU-file-path.csv")
 ```
 
+Take a look to the `demo.py` file for more info.
 
-# About #
 
-HIMUServer is released under the MIT license.
-
-HyperIMU and HIMUServer by Sebastiano Campisi - ianovir - Copyright &copy; 2017
+# Copyright
+Copyright(c) 2019 Sebastiano Campisi - [ianovir.com](https://ianovir.com). 
+Read the LICENSE file for more details.
 
 

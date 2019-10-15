@@ -138,7 +138,7 @@ class HIMUServer:
 					print('Sensor' + str(i) +  ": " + str(sensorAcq))
 					i+=1
 		except Exception as ex:
-			print str(ex)
+			print(str(ex))
 				
 	def __extractSensorData (self, dataString):		
 		'''
@@ -180,7 +180,6 @@ class HIMUServer:
 				self.executeTCP(int(arg))
 			elif protocol == 'FILE':
 				self.executeFile(arg)
-			print("The End")
 		except Exception as ex:
 			print(str(ex))
 			

@@ -3,7 +3,7 @@
 # MIT License
 #
 # HyperIMU Server (HIMU Server)
-# Copyright (c) [2017] [Sebastiano Campisi - ianovir]
+# Copyright (c) [2020] [Sebastiano Campisi - ianovir]
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,6 @@ myHIMUServer = HIMUServer()
 #Creating listener and adding it to the server instance:
 myListener = SimplePrintListener(myHIMUServer)
 myHIMUServer.addListener(myListener)
-
 
 #Change the timeout (in seconds) :
 myHIMUServer.timeout = 2

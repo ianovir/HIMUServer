@@ -3,7 +3,7 @@
 # MIT License
 #
 # HyperIMU Server (HIMU Server)
-# Copyright (c) [2017] [Sebastiano Campisi - ianovir]
+# Copyright (c) [2020] [Sebastiano Campisi - ianovir]
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -52,24 +52,11 @@ class HIMUServer:
 		for listener in self.__listeners:
 			listener.notify(recPacket)
 
-	def executeRAW(self , port):
+	def executeUDP(self , port, raw = False):
 		'''
-		Print raw data received (UDP)
-		'''
-		UDPSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)	
-		UDPSocket.settimeout(timeout)
-		serverAddress = ('', port)
-		print('Listening on port ' + str(port))
-		UDPSocket.bind(serverAddress)
-		while self.go:
-			[data,attr] = UDPSocket.recvfrom(self.bufferSize)
-			if not data: break
-			self.__notifyListeners(self.__extractSensorData(data.decode("utf-8")))
-		UDPSocket.close()
-
-	def executeUDP(self , port):
-		'''
-		Performs data acquisition via UDP protocol
+		Performs data acquisition via UDP protocol.
+		If raw is False (default) sensors' data will be extracted from the input string,
+		otherwise the latter will be presented as it is.
 		'''
 		UDPSocket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)	
 		UDPSocket.settimeout(self.timeout)
@@ -79,12 +66,17 @@ class HIMUServer:
 		while self.go:
 			[data,attr] = UDPSocket.recvfrom(self.bufferSize)
 			if not data: break
-			self.__notifyListeners(self.__extractSensorData(data.decode("utf-8")))
+			if raw :
+				self.__notifyListeners(data.decode("utf-8"))
+			else:
+				self.__notifyListeners(self.__extractSensorData(data.decode("utf-8")))
 		UDPSocket.close()
 
-	def executeTCP(self , port):
+	def executeTCP(self , port, raw = False):
 		'''
-		Performs data acquisition via TCP protocol
+		Performs data acquisition via TCP protocol.
+		If raw is False (default) sensors' data will be extracted from the input string,
+		otherwise the latter will be presented as it is.
 		'''
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.settimeout(self.timeout)
@@ -98,10 +90,13 @@ class HIMUServer:
 		while self.go:
 			data = connection.recv(self.bufferSize)
 			if not data: break
-			self.__notifyListeners(self.__extractSensorData(data.decode("utf-8")))
+			if raw :
+				self.__notifyListeners(data.decode("utf-8"))
+			else:
+				self.__notifyListeners(self.__extractSensorData(data.decode("utf-8")))
 		connection.close()		
 
-	def executeFile(self , fileName):
+	def executeFile(self , fileName, raw = False):
 		'''
 		Performs data acquisition from local file
 		'''
@@ -109,8 +104,11 @@ class HIMUServer:
 		f = open(fileName,'r')
 		sline=f.readline()
 		while sline!='':
-			if sline[0]!= self.__commentSymbol:			
-				self.__notifyListeners(self.__extractSensorData(sline))
+			if sline[0]!= self.__commentSymbol:	
+				if raw :
+					self.__notifyListeners(sline)
+				else:			
+					self.__notifyListeners(self.__extractSensorData(sline))
 			sline=f.readline()
 		print('reached EOF.')
 			
@@ -154,32 +152,34 @@ class HIMUServer:
 					packVal = []
 					packSplit = pack.replace('\n', '').replace('\r', '').split(",")
 					numSensors = int(math.floor( len(packSplit)  / valuesPerSensor))
-					lFloat = HIMUServer.strings2Floats(packSplit)
 					for i in range(0 , numSensors):
 						p = packSplit[i*valuesPerSensor : (i+1)*(valuesPerSensor)]
 						packVal.append(p)
 					if(len(packVal)>0):
 						retVal.append(packVal)
 				except Exception as ex:
-					pass
+					print(str(ex))
 		return retVal
 
-	def start(self , protocol, arg):
+	def start(self , protocol, arg, raw = False):
 		'''
 		Executes the data acquisition;
-		<protocol> 	the supported protocol: 'UDP' , 'TCP' , 'FILE' o 'RAW'
-		<arg> 		the port number in case of UDP or TCP protocols, input file path in case of 'FILE' protocol
+		<protocol> 	the supported protocol: 'UDP' , 'TCP' , 'FILE'
+		<arg> 		the port number in case of UDP or TCP protocols, input file path in case of 'FILE' protocol		
+		<raw> 		False (default) to extract sensors' data from input string, True to present the latter as it is
 		'''
+		
 		print('protocol: ' + protocol)
+		print('RAW: ' + ('yes' if raw else 'no'))
 		try:
 			if protocol == 'RAW':
-				self.executeRAW(int(arg))
+				print("RAW deprecated, use the <raw> parameter instead.")
 			elif protocol == 'UDP':
-				self.executeUDP(int(arg))
+				self.executeUDP(int(arg), raw)
 			elif protocol == 'TCP':
-				self.executeTCP(int(arg))
+				self.executeTCP(int(arg), raw)
 			elif protocol == 'FILE':
-				self.executeFile(arg)
+				self.executeFile(arg, raw)
 		except Exception as ex:
 			print(str(ex))
 			

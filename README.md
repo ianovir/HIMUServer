@@ -63,7 +63,7 @@ python HIMUServer/setup.py install
 ```   
 Finally, delete the folder `HIMUServer/`
 
-# How to use HIMUServer#
+# How to use HIMUServer #
 
 ## Server configuration ##
 

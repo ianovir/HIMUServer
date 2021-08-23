@@ -184,5 +184,5 @@ class HIMUServer:
 			print(str(ex))
 			
 	def stop(self ):
-		self.go = false
+		self.go = False
 		
